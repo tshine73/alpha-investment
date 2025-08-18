@@ -29,10 +29,7 @@ def get_latest_future_contract(future_contract_dict: dict):
     return latest_future_contract, next_two_month_future_contract
 
 
-def is_backwardation(latest_future_contract: Future, next_two_month_future_contract: Future):
-    backwardation = next_two_month_future_contract.reference - latest_future_contract.reference
-    print(
-        f"the {latest_future_contract.name} -> {next_two_month_future_contract.name} backwardation point is {backwardation}")
+
 
 
 def clean(*contracts: Future):
@@ -68,7 +65,6 @@ def handler(event, context=None):
 
     future_contract_dict = init_future_contracts(api)
     latest_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
-    is_backwardation(latest_future_contract, next_two_month_future_contract)
     cleaned_contracts = clean(latest_future_contract, next_two_month_future_contract)
     save(*cleaned_contracts)
 

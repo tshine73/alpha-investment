@@ -12,10 +12,10 @@ from utils.date_utils import format_date
 
 
 
-def login():
+def login(simulation=True):
     load_dotenv()
 
-    api = sj.Shioaji(simulation=True)  # 模擬模式
+    api = sj.Shioaji(simulation=simulation)  # 模擬模式
     accounts = api.login(
         api_key=os.getenv("API_KEY"),
         secret_key=os.getenv("SECRET_KEY"),

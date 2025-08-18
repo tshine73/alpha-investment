@@ -9,17 +9,22 @@ from shioaji.contracts import Future
 
 from future.core import login, find_target_future_contract, init_future_contracts
 from future.future_dao import FutureDao
+from model.constant import TradeType, Price
 from utils.date_utils import format_date
 
 
+def trade(trade_type: TradeType, price: Price, future_contract: Future):
+    pass
 
 
 
 def handler(event, context=None):
-    api = login()
+    api = login(False)
+
 
     future_contract_dict = init_future_contracts(api)
-    contract = find_target_future_contract(future_contract_dict, "MXFR1")
+    contract = find_target_future_contract(future_contract_dict, "MXFR2")
+
     #
     # contract = min(
     #     [
@@ -32,7 +37,7 @@ def handler(event, context=None):
     # 期貨委託單 - 請修改此處
     order = api.Order(
         action=sj.constant.Action.Buy,  # 買賣別
-        price=15000,  # 價格
+        price=23000,  # 價格
         quantity=1,  # 數量
         price_type=sj.constant.FuturesPriceType.LMT,  # 委託價格類別
         order_type=sj.constant.OrderType.ROD,  # 委託條件
@@ -42,6 +47,7 @@ def handler(event, context=None):
 
     # 下單
     trade = api.place_order(contract, order)
+    print(trade)
 
 
 if __name__ == '__main__':
