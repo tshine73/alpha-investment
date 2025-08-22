@@ -2,18 +2,10 @@ from datetime import datetime
 from decimal import Decimal
 
 import boto3
-import shioaji as sj
 from shioaji.contracts import Future
 
 from future.core import login, find_target_future_contract, init_future_contracts
 from future.future_dao import FutureDao
-from utils.date_utils import format_date
-
-
-
-
-
-
 
 
 def get_latest_future_contract(future_contract_dict: dict):
@@ -29,11 +21,8 @@ def get_latest_future_contract(future_contract_dict: dict):
     return latest_future_contract, next_two_month_future_contract
 
 
-
-
-
 def clean(*contracts: Future):
-    now = format_date(datetime.now())
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cleaned_contracts = []
     for contract in contracts:
         cleaned_contract = {
@@ -61,7 +50,9 @@ def save(*contracts: Future):
 
 
 def handler(event, context=None):
-    api = login()
+    simulation = event.get("simulation", "True") == "True"
+
+    api = login(simulation)
 
     future_contract_dict = init_future_contracts(api)
     latest_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
@@ -70,4 +61,4 @@ def handler(event, context=None):
 
 
 if __name__ == '__main__':
-    handler(None)
+    handler({}, None)

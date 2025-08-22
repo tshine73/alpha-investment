@@ -1,5 +1,4 @@
-shioaji==1.2.5
+shioaji==1.2.7
 python-dotenv==1.0.1
 boto3==1.37.3
-pydantic==2.11.7
-
+pydantic==2.11.5

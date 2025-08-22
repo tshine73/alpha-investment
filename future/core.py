@@ -1,15 +1,7 @@
 import os
-from datetime import datetime
-from decimal import Decimal
 
-import boto3
 import shioaji as sj
 from dotenv import load_dotenv
-from shioaji.contracts import Future
-
-from future.future_dao import FutureDao
-from utils.date_utils import format_date
-
 
 
 def login(simulation=True):
@@ -31,6 +23,7 @@ def login(simulation=True):
     print("login and activate ca success")
 
     return api
+
 
 def init_future_contracts(api: sj.Shioaji):
     api.fetch_contracts(contract_download=True, contracts_timeout=3000)
