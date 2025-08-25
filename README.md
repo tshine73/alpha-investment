@@ -32,19 +32,20 @@ PYTHONPATH=./ python ./future/get_future_index.py
 pip install shioaji==1.2.5 --target ./package
 pip install python-dotenv==1.0.1 pydantic==2.11.7 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
 pip install -r ../requirements.txt --target ./package 
+pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package
+pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
 
 ## deploy
 
 ```shell
 rm deployment_package.zip
 mkdir package
-pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package
-pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
+pip install -r ../requirements.txt --target ./package
 cp -r ../lambda_function ./package/
 rm -rf ./package/lambda_function/__pycache__
 cp -r ../utils ./package/
 rm -rf ./package/utils/__pycache__  
-cp -r ../developer/model ./package/
+cp -r ../model ./package/
 rm -rf ./package/model/__pycache__
 cp -r ../future ./package/
 rm -rf ./package/future/__pycache__
