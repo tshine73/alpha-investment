@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from decimal import Decimal
 
@@ -43,7 +44,8 @@ def clean(*contracts: Future):
 
 
 def save(*contracts: Future):
-    dynamodb_client = boto3.resource("dynamodb")
+    region = os.getenv("REGION", "us-west-2")
+    dynamodb_client = boto3.resource("dynamodb", region_name=region)
     future_dao = FutureDao(dynamodb_client)
     future_dao.write_batch(list(contracts))
     print("save future contract to dynamodb success")

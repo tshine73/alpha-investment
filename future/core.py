@@ -26,12 +26,16 @@ def login(simulation=True):
 
 
 def init_future_contracts(api: sj.Shioaji):
-    api.fetch_contracts(contract_download=True, contracts_timeout=3000)
+    print("init_future_contracts start")
+    api.fetch_contracts(contract_download=False, contracts_timeout=3000)
+    print("init_future_contracts fetch_contracts success")
+
     future_contract_dict = {}
     for futures in api.Contracts.Futures:
         for future in futures:
             future_contract_dict[future.code] = future
 
+    print("init_future_contracts success")
     return future_contract_dict
 
 

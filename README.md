@@ -35,12 +35,15 @@ pip install -r ../requirements.txt --target ./package
 pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package
 pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
 
+pip install -r ../requirements.txt --target ./package
+
+
 ## deploy
 
 ```shell
 rm deployment_package.zip
 mkdir package
-pip install -r ../requirements.txt --target ./package
+pip install shioaji==1.2.7 python-dotenv==1.0.1 pydantic==2.11.5 --target ./package
 cp -r ../lambda_function ./package/
 rm -rf ./package/lambda_function/__pycache__
 cp -r ../utils ./package/
