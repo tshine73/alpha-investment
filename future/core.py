@@ -2,7 +2,7 @@ import os
 
 import shioaji as sj
 from dotenv import load_dotenv
-
+from shioaji.contracts import Future
 
 def login(simulation=True):
     load_dotenv()
@@ -42,3 +42,14 @@ def find_target_future_contract(future_contract_dict, code: str):
         contract = future_contract_dict[contract.target_code]
 
     return contract
+
+
+
+def is_hold_future(api, future_contract: Future):
+    positions = api.list_positions(api.futopt_account)
+
+    for position in positions:
+        if position.contract.code == future_contract.code:
+            return True
+
+    return False

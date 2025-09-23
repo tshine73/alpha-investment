@@ -7,7 +7,7 @@ import shioaji
 from shioaji.contracts import Future
 
 from core.strategy import LowerThanMinOfXDaysStrategy
-from future.core import login, find_target_future_contract, init_future_contracts
+from future.core import login, find_target_future_contract, init_future_contracts, is_hold_future
 from future.future_dao import FutureDao
 from future.trading import trade
 from model.constant import TradeType, Price
@@ -63,14 +63,6 @@ def quote(api, future_contract: Future):
     )
 
 
-def is_hold_future(api, future_contract: Future):
-    positions = api.list_positions(api.futopt_account)
-
-    for position in positions:
-        if position.contract.code == future_contract.code:
-            return True
-
-    return False
 
 
 def handler(event, context=None):

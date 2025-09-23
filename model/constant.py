@@ -11,3 +11,5 @@ class TradeType(str, Enum):
 
 class Price(str, Enum):
     market = 'market'
+    limit = 'limit'
+    mkp = 'mkp'
