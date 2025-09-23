@@ -1,67 +1,54 @@
-import os
+import boto3
+import pandas as pd
 
-from dotenv import load_dotenv
-
-import shioaji as sj
-
-from future.get_future_index import login
+from future.future_dao import FutureDao
 
 
-def trade_stock(api: sj.Shioaji):
-    contract = api.Contracts.Stocks.TSE["2890"]
+def main():
+    dynamodb_client = boto3.resource("dynamodb")
+    future_dao = FutureDao(dynamodb_client)
 
-    # 證券委託單 - 請修改此處
-    order = api.Order(
-        price=21,  # 價格
-        quantity=1,  # 數量
-        action=sj.constant.Action.Buy,  # 買賣別
-        price_type=sj.constant.StockPriceType.LMT,  # 委託價格類別
-        order_type=sj.constant.OrderType.ROD,  # 委託條件
-        account=api.stock_account  # 下單帳號
-    )
+    latest = future_dao.query_by_code("MXFI5")
+    next_two_month = future_dao.query_by_code("MXFJ5")
+    latest_df = pd.DataFrame(latest)
+    next_two_month_df = pd.DataFrame(next_two_month)
+    print(latest[0])
+    print(len(latest_df))
+    print(len(next_two_month_df))
+    combined_df = pd.merge(latest_df, next_two_month_df, on="update_time", suffixes=('_l', '_r'))
 
-    # 下單
-    trade = api.place_order(contract, order)
-    print(trade)
+    print(combined_df)
+    print(combined_df.dtypes)
 
-
-def trade_future(api: sj.Shioaji):
-    # 商品檔 - 近月台指期貨, 請修改此處
-    contract = min(
-        [
-            x for x in api.Contracts.Futures.TXF
-            if x.code[-2:] not in ["R1", "R2"]
-        ],
-        key=lambda x: x.delivery_date
-    )
-
-    print(contract)
-    # 期貨委託單 - 請修改此處
-    order = api.Order(
-        action=sj.constant.Action.Buy,  # 買賣別
-        price=15000,  # 價格
-        quantity=1,  # 數量
-        price_type=sj.constant.FuturesPriceType.LMT,  # 委託價格類別
-        order_type=sj.constant.OrderType.ROD,  # 委託條件
-        octype=sj.constant.FuturesOCType.Auto,  # 倉別
-        account=api.futopt_account  # 下單帳號
-    )
-
-    # 下單
-    trade = api.place_order(contract, order)
-    print(trade)
+    combined_df["backwardation"] = combined_df["reference_r"] - combined_df["reference_l"]
+    combined_df["updated_date"] = pd.to_datetime(combined_df["update_time"], format='%Y-%m-%d %H:%M:%S').dt.date
 
 
-def list_app_future_product(api: sj.Shioaji):
-    api.fetch_contracts(contract_download=True, contracts_timeout=3000)
 
-    for future in api.Contracts.Futures:
-        for f in future:
-            print(f)
+    df = combined_df[["updated_date", "backwardation"]]
 
+    count_df = df.groupby("updated_date").count().rename(columns={"backwardation": "backwardation_count"})
+    print(len(count_df))
+    print(count_df)
+
+    distinct_dates_count = df["updated_date"].nunique()
+    print(f"Distinct updated_date count: {distinct_dates_count}")
+    
+    
+    
+    print(df)
+    print(df.dtypes)
+    
+    min_backwardation = df["backwardation"].min()
+    print(f"Minimum backwardation: {min_backwardation}")
+    print(type(min_backwardation))
+
+    print(min_backwardation > 0)
+    
+    
+
+
+    
 
 if __name__ == '__main__':
-    load_dotenv()
-    api = login()
-
-    list_app_future_product(api)
+    main()

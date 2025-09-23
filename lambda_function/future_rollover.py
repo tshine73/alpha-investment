@@ -6,17 +6,16 @@ import boto3
 import shioaji
 from shioaji.contracts import Future
 
+from core.strategy import LowerThanMinOfXDaysStrategy
 from future.core import login, find_target_future_contract, init_future_contracts
 from future.future_dao import FutureDao
+from future.trading import trade
+from model.constant import TradeType, Price
 
 
 def get_latest_future_contract(future_contract_dict: dict):
     latest_future_contract = find_target_future_contract(future_contract_dict, "MXFR1")
     next_two_month_future_contract = find_target_future_contract(future_contract_dict, "MXFR2")
-    for i in future_contract_dict:
-        print(future_contract_dict[i])
-    # latest_future_contract = find_target_future_contract(future_contract_dict, "MXFPMI5")
-    # next_two_month_future_contract = find_target_future_contract(future_contract_dict, "MXFPMJ5")
 
     print(f"the latest future contract:")
     print(latest_future_contract)
@@ -48,10 +47,11 @@ def clean(*contracts: Future):
     return cleaned_contracts
 
 
-def save(*contracts: Future):
-    dynamodb_client = boto3.resource("dynamodb")
+def save_contracts(dynamodb_client, *contracts: Future):
+    clean_contracts = clean(*contracts)
+
     future_dao = FutureDao(dynamodb_client)
-    future_dao.write_batch(list(contracts))
+    future_dao.write_batch(list(clean_contracts))
     print("save future contract to dynamodb success")
 
 
@@ -63,21 +63,42 @@ def quote(api, future_contract: Future):
     )
 
 
+def is_hold_future(api, future_contract: Future):
+    positions = api.list_positions(api.futopt_account)
+
+    for position in positions:
+        if position.contract.code == future_contract.code:
+            return True
+
+    return False
+
+
 def handler(event, context=None):
     simulation = event.get("simulation", "True") == "True"
 
     api = login(simulation)
 
-    future_contract_dict = init_future_contracts(api)
-    latest_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
-    cleaned_contracts = clean(latest_future_contract, next_two_month_future_contract)
-    quote(api, latest_future_contract)
-    # save(*cleaned_contracts)
+    dynamodb_client = boto3.resource("dynamodb")
 
-    i = 0
-    while i < 100:
-        time.sleep(1)
-        i += 1
+    future_contract_dict = init_future_contracts(api)
+    recently_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
+
+    # save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)
+
+    if is_hold_future(api, next_two_month_future_contract):
+        print("holding the next two month future contract, end the lambda")
+        return
+
+    strategy = LowerThanMinOfXDaysStrategy(dynamodb_client)
+    is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
+    print(f"the strategy result is: {is_buy}")
+
+    if is_buy:
+        if is_hold_future(api, recently_future_contract):
+            trade(api, TradeType.sale, Price.market, recently_future_contract)
+            trade(TradeType.buy, Price.market, next_two_month_future_contract)
+        else:
+            print("not holding the recent future contract, end the trade")
 
     api.logout()
 
