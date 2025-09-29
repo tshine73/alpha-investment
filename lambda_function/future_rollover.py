@@ -72,7 +72,8 @@ def handler(event, context=None):
     future_contract_dict = init_future_contracts(api)
     recently_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
 
-    save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)
+    if not simulation:
+        save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)
 
     if is_hold_future(api, next_two_month_future_contract):
         print("holding the next two month future contract, end the lambda")

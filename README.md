@@ -39,8 +39,14 @@ pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package --platform ma
 pip install -r ../requirements.txt --target ./package
 
 ## deploy
-
+### env prepare
+```bash
+sudo yum install -y python3.12
+python3.12 -m venv deployment_env
+source deployment_env/bin/activate
+```
 ```shell
+cd deployment
 rm deployment_package.zip
 mkdir package
 pip install shioaji==1.2.7 python-dotenv==1.0.1 pydantic==2.11.5 --target ./package
