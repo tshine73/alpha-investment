@@ -1,0 +1,7 @@
+contract = Contract(
+        security_type= < SecurityType.Future: 'FUT' >, exchange = < Exchange.TAIFEX: 'TAIFEX' >, code = 'MXFK5') order = Order(
+        action= < Action.Buy: 'Buy' >, price = 24345.0, quantity = 1, id = '55c7e5b0', seqno = '695525', ordno = 'vi0e5', account = Account(
+        account_type= < AccountType.Future: 'F' >, person_id = 'F126811241', broker_id = 'F002000', account_id = '1938915', signed = True), price_type = < StockPriceType.LMT: 'LMT' >, order_type = < OrderType.ROD: 'ROD' >, octype = < FuturesOCType.New: 'New' >) status = OrderStatus(
+        id='55c7e5b0',
+        status= < Status.Submitted: 'Submitted' >, status_code = '0000', web_id = 'Z', order_datetime = datetime.datetime(
+        2025, 9, 25, 13, 3, 10), modified_price = 24345.0, order_quantity = 1, deals = [])

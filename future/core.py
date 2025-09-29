@@ -49,7 +49,7 @@ def is_hold_future(api, future_contract: Future):
     positions = api.list_positions(api.futopt_account)
 
     for position in positions:
-        if position.contract.code == future_contract.code:
+        if position.code == future_contract.code:
             return True
 
     return False
