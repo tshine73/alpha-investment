@@ -29,22 +29,26 @@ cd ./alpha-investment
 PYTHONPATH=./ python ./future/get_future_index.py
 ```
 
-pip install shioaji==1.2.5 --target ./package
-pip install python-dotenv==1.0.1 pydantic==2.11.7 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
-pip install -r ../requirements.txt --target ./package 
-pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package
-pip install python-dotenv==1.0.1 shioaji==1.2.5 --target ./package --platform manylinux2014_x86_64 --only-binary=:all:
-
-
-pip install -r ../requirements.txt --target ./package
-
 ## deploy
-### env prepare
+### create EC2 with os Amazon Linux, and then install python 3.12
 ```bash
 sudo yum install -y python3.12
+sudo yum install git -y
+sudo yum install -y python3-pip
+sudo yum install -y zip
 python3.12 -m venv deployment_env
 source deployment_env/bin/activate
+cd ~
+git clone https://github.com/tshine73/alpha-investment.git 
 ```
+
+### open new terminal, copy .env and Sinopac.pfx to ec2 
+```bash
+scp -i ~/.ssh/tshine73.pem .env ec2-user@35.92.138.15:~/alpha-investment/deployment/
+scp -i ~/.ssh/tshine73.pem ./alpha-investment/resources/Sinopac.pfx ec2-user@52.32.87.1:~/alpha-investment/resources/
+```
+
+### ssh to ec2 and package
 ```shell
 cd deployment
 rm deployment_package.zip
@@ -66,4 +70,19 @@ cd package
 zip -r ../deployment_package.zip .
 cd ..
 rm -rf package
+```
+
+### download the zip and deploy to lambda
+
+## prepare pandas layer for lambda
+```bash
+cd deployment
+rm -rf pandas-manual-package
+rm pandas-manual-package.zip
+mkdir -p pandas-manual-package/python/lib/python3.12/site-packages
+pip install pandas==2.3.2 --target ./pandas-manual-package/python/lib/python3.12/site-packages --platform manylinux2014_x86_64 --only-binary=:all:
+rm -rf pandas-manual-package/python/lib/python3.12/site-packages/pandas/tests
+cd pandas-manual-package
+zip -r ../pandas-manual-package.zip .
+cd ..
 ```

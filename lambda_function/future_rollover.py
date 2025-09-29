@@ -1,8 +1,10 @@
+import os
 from datetime import datetime
 from decimal import Decimal
 
 import boto3
 import shioaji
+from dotenv import load_dotenv
 from shioaji.constant import Action
 from shioaji.contracts import Future
 
@@ -64,6 +66,9 @@ def quote(api, future_contract: Future):
 
 def handler(event, context=None):
     simulation = event.get("simulation", "True") == "True"
+    print(f"simulation is {simulation}")
+
+    load_dotenv()
 
     api = login(simulation)
 
@@ -79,7 +84,8 @@ def handler(event, context=None):
         print("holding the next two month future contract, end the lambda")
         return
 
-    strategy = LowerThanMinOfXDaysStrategy(dynamodb_client)
+    check_days = os.getenv("check_days", 10)
+    strategy = LowerThanMinOfXDaysStrategy(dynamodb_client, check_days)
     is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
     print(f"do i rollover future? -> {is_buy}")
 

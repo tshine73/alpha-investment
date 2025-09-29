@@ -15,6 +15,8 @@ class LowerThanMinOfXDaysStrategy(Strategy):
     def __init__(self, client, check_days=10):
         super().__init__(client)
         self.check_days = check_days
+        print(f"init strategy: LowerThanMinOfXDaysStrategy, the check days {check_days}")
+
 
     def is_buy(self, latest_future_contract, next_two_month_future_contract) -> bool:
         latest_future_df = pd.DataFrame(self.future_dao.query_by_code(latest_future_contract.code))
