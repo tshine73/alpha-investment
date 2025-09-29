@@ -28,20 +28,20 @@ from future.core import login, find_target_future_contract, init_future_contract
 ## ca (binary): 憑證
 # )
 ###
-def trade(api, action: Action, price: FuturesPriceType, contract: Future):
+def trade(api, action: Action, contract: Future):
     api.update_status(api.futopt_account)
-    trades = api.list_trades()
+    all_trades = api.list_trades()
 
     today = datetime.now().strftime('%Y-%m-%d')
-
-    trades = [trade for trade in trades if
-              trade.status.status == Status.Submitted and trade.status.order_datetime.strftime(
-                  '%Y-%m-%d') == today and trade.contract.code == contract.code and trade.order.action == action]
+    trades = [trade for trade in all_trades if
+              (trade.status.status == Status.Submitted or trade.status.status == Status.PreSubmitted)
+              and trade.status.order_datetime.strftime('%Y-%m-%d') == today
+              and trade.contract.code == contract.code and trade.order.action == action]
 
     if trades:
-        print(f"found submitted {len(trades)} trades need to update price")
+        print(f"found [{len(trades)}] submitted trades need to be update price")
         for trade in trades:
-            new_price = 24312
+            new_price = contract.reference
             api.update_order(
                 trade,
                 price=new_price
@@ -55,7 +55,7 @@ def trade(api, action: Action, price: FuturesPriceType, contract: Future):
                 (action == Action.Sell and is_hold_future(api, contract)):
             order = api.Order(
                 action=action,  # 買賣別
-                price=contract.reference - 1900,  # 價格
+                price=contract.reference,  # 價格
                 quantity=1,  # 數量
                 price_type=FuturesPriceType.LMT,  # 委託價格類別
                 order_type=OrderType.ROD,  # 委託條件
@@ -77,9 +77,9 @@ def handler(event, context=None):
     api = login(simulation=False)
 
     future_contract_dict = init_future_contracts(api)
-    contract = find_target_future_contract(future_contract_dict, "MXFR2")
+    contract = find_target_future_contract(future_contract_dict, "MXFR1")
 
-    trade(api, Action.Buy, FuturesPriceType.LMT, contract)
+    trade(api, Action.Buy, contract)
 
 
 if __name__ == '__main__':

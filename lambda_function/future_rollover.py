@@ -1,16 +1,15 @@
-import time
 from datetime import datetime
 from decimal import Decimal
 
 import boto3
 import shioaji
+from shioaji.constant import Action
 from shioaji.contracts import Future
 
 from core.strategy import LowerThanMinOfXDaysStrategy
 from future.core import login, find_target_future_contract, init_future_contracts, is_hold_future
 from future.future_dao import FutureDao
 from future.trading import trade
-from model.constant import TradeType, Price
 
 
 def get_latest_future_contract(future_contract_dict: dict):
@@ -63,8 +62,6 @@ def quote(api, future_contract: Future):
     )
 
 
-
-
 def handler(event, context=None):
     simulation = event.get("simulation", "True") == "True"
 
@@ -75,7 +72,7 @@ def handler(event, context=None):
     future_contract_dict = init_future_contracts(api)
     recently_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
 
-    # save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)
+    save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)
 
     if is_hold_future(api, next_two_month_future_contract):
         print("holding the next two month future contract, end the lambda")
@@ -83,12 +80,12 @@ def handler(event, context=None):
 
     strategy = LowerThanMinOfXDaysStrategy(dynamodb_client)
     is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
-    print(f"the strategy result is: {is_buy}")
+    print(f"do i rollover future? -> {is_buy}")
 
     if is_buy:
         if is_hold_future(api, recently_future_contract):
-            trade(api, TradeType.sale, Price.market, recently_future_contract)
-            trade(TradeType.buy, Price.market, next_two_month_future_contract)
+            trade(api, Action.Sell, recently_future_contract)
+            trade(api, Action.Buy, next_two_month_future_contract)
         else:
             print("not holding the recent future contract, end the trade")
 
