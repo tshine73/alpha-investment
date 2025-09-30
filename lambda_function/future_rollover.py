@@ -9,7 +9,7 @@ from shioaji.constant import Action
 from shioaji.contracts import Future
 
 from core.strategy import LowerThanMinOfXDaysStrategy
-from future.core import login, find_target_future_contract, init_future_contracts, is_hold_future
+from future.core import login, find_target_future_contract, get_future_contracts, is_hold_future, get_latest_tick
 from future.future_dao import FutureDao
 from future.trading import trade
 
@@ -17,12 +17,6 @@ from future.trading import trade
 def get_latest_future_contract(future_contract_dict: dict):
     latest_future_contract = find_target_future_contract(future_contract_dict, "MXFR1")
     next_two_month_future_contract = find_target_future_contract(future_contract_dict, "MXFR2")
-
-    print(f"the latest future contract:")
-    print(latest_future_contract)
-
-    print(f"the next two month future contract:")
-    print(next_two_month_future_contract)
 
     return latest_future_contract, next_two_month_future_contract
 
@@ -74,8 +68,20 @@ def handler(event, context=None):
 
     dynamodb_client = boto3.resource("dynamodb")
 
-    future_contract_dict = init_future_contracts(api)
+    future_contract_dict = get_future_contracts(api)
     recently_future_contract, next_two_month_future_contract = get_latest_future_contract(future_contract_dict)
+
+    recently_future_tick = get_latest_tick(api, recently_future_contract)
+    next_two_month_future_tick = get_latest_tick(api, next_two_month_future_contract)
+
+    recently_future_contract.reference = recently_future_tick.close[0]
+    next_two_month_future_contract.reference = next_two_month_future_tick.close[0]
+
+    print(f"the latest future contract:")
+    print(recently_future_contract)
+
+    print(f"the next two month future contract:")
+    print(next_two_month_future_contract)
 
     if not simulation:
         save_contracts(dynamodb_client, recently_future_contract, next_two_month_future_contract)

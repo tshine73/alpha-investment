@@ -3,6 +3,7 @@ import os
 import shioaji as sj
 from dotenv import load_dotenv
 from shioaji.contracts import Future
+from shioaji.constant import TicksQueryType
 
 def login(simulation=True):
     load_dotenv()
@@ -25,8 +26,8 @@ def login(simulation=True):
     return api
 
 
-def init_future_contracts(api: sj.Shioaji):
-    api.fetch_contracts(contract_download=False, contracts_timeout=3000)
+def get_future_contracts(api: sj.Shioaji):
+    api.fetch_contracts(contract_download=False, contracts_timeout=5000)
 
     future_contract_dict = {}
     for futures in api.Contracts.Futures:
@@ -44,7 +45,6 @@ def find_target_future_contract(future_contract_dict, code: str):
     return contract
 
 
-
 def is_hold_future(api, future_contract: Future):
     positions = api.list_positions(api.futopt_account)
 
@@ -53,3 +53,13 @@ def is_hold_future(api, future_contract: Future):
             return True
 
     return False
+
+def get_latest_tick(api: sj.Shioaji, contract: Future):
+    return get_ticks(api, contract, 1)
+
+def get_ticks(api: sj.Shioaji, contract: Future, count=10):
+    ticks = api.ticks(contract,
+                      query_type=TicksQueryType.LastCount,
+                      last_cnt=count
+                      )
+    return ticks

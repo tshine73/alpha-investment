@@ -3,7 +3,7 @@ from datetime import datetime
 from shioaji.constant import Status, Action, FuturesPriceType, FuturesOCType, OrderType
 from shioaji.contracts import Future
 
-from future.core import login, find_target_future_contract, init_future_contracts, is_hold_future
+from future.core import login, find_target_future_contract, get_future_contracts, is_hold_future
 
 
 ###
@@ -76,7 +76,7 @@ def trade(api, action: Action, contract: Future):
 def handler(event, context=None):
     api = login(simulation=False)
 
-    future_contract_dict = init_future_contracts(api)
+    future_contract_dict = get_future_contracts(api)
     contract = find_target_future_contract(future_contract_dict, "MXFR1")
 
     trade(api, Action.Buy, contract)
