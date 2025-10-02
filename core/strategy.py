@@ -46,5 +46,5 @@ class LowerThanMinOfXDaysStrategy(Strategy):
 
             return current_backwardation <= history_min_backwardation
         else:
-            print(f"not enough quote data dates: {len(groupby_df)}, need {self.check_days}")
+            print(f"not enough quote data dates: {len(groupby_df) - 1}, need {self.check_days}")
             return False
