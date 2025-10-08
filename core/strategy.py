@@ -10,14 +10,7 @@ class Strategy:
     def is_buy(self, latest_future_contract, next_two_month_future_contract) -> bool:
         pass
 
-
-class LowerThanMinOfXDaysStrategy(Strategy):
-    def __init__(self, client, check_days=10):
-        super().__init__(client)
-        self.check_days = check_days
-        print(f"init strategy: LowerThanMinOfXDaysStrategy, the check days {check_days}")
-
-    def is_buy(self, latest_future_contract, next_two_month_future_contract) -> bool:
+    def get_history_references(self, latest_future_contract, next_two_month_future_contract):
         latest_future_df = pd.DataFrame(self.future_dao.query_by_code(latest_future_contract.code))
         next_two_month_future_df = pd.DataFrame(self.future_dao.query_by_code(next_two_month_future_contract.code))
 
@@ -28,6 +21,17 @@ class LowerThanMinOfXDaysStrategy(Strategy):
 
         backwardation_df = combined_df[["updated_date", "backwardation"]]
 
+        return backwardation_df
+
+
+class LowerThanStrategy(Strategy):
+    def __init__(self, client, check_days=10):
+        super().__init__(client)
+        self.check_days = check_days
+        strategy_name = type(self).__name__
+        print(f"init strategy: {strategy_name}, check days {check_days}")
+
+    def group_backwardation(self, backwardation_df):
         groupby_df = backwardation_df.groupby("updated_date").agg(
             count_backwardation=('backwardation', 'count'),
             min_backwardation=('backwardation', 'min'),
@@ -38,13 +42,32 @@ class LowerThanMinOfXDaysStrategy(Strategy):
         print("statistics of daily backwardation:")
         print(groupby_df)
 
+        return groupby_df
+
+    def is_buy(self, latest_future_contract, next_two_month_future_contract) -> bool:
+        backwardation_df = self.get_history_references(latest_future_contract, next_two_month_future_contract)
+        groupby_df = self.group_backwardation(backwardation_df)
+
         if len(groupby_df) > self.check_days:
-            history_min_backwardation = backwardation_df["backwardation"].min()
+            history_backwardation = self.get_specific_backwardation(backwardation_df["backwardation"])
             current_backwardation = next_two_month_future_contract.reference - latest_future_contract.reference
-            print("history min backwardation: ", history_min_backwardation)
+            print("history backwardation: ", history_backwardation)
             print("current backwardation: ", current_backwardation)
 
-            return current_backwardation <= history_min_backwardation
+            return current_backwardation <= history_backwardation
         else:
             print(f"not enough quote data dates: {len(groupby_df) - 1}, need {self.check_days}")
             return False
+
+    def get_specific_backwardation(self, backwardation_series) -> int:
+        pass
+
+
+class LowerThanMinOfXDaysStrategy(LowerThanStrategy):
+    def get_specific_backwardation(self, backwardation_series) -> int:
+        return backwardation_series.min()
+
+
+class LowerThanMedianOfXDaysStrategy(LowerThanStrategy):
+    def get_specific_backwardation(self, backwardation_series) -> int:
+        return backwardation_series.median()
