@@ -75,6 +75,9 @@ rm -rf package
 ```
 
 ### download the zip and deploy to lambda
+```bash
+scp -i ~/.ssh/tshine73.pem ec2-user@34.222.45.92:/home/ec2-user/alpha-investment/deployment/deployment_package.zip ./
+```
 
 ## prepare pandas layer for lambda
 ```bash
