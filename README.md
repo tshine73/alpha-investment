@@ -50,6 +50,8 @@ scp -i ~/.ssh/tshine73.pem ./alpha-investment/resources/Sinopac.pfx ec2-user@52.
 
 ### ssh to ec2 and package
 ```shell
+git pull
+source deployment_env/bin/activate
 cd deployment
 rm deployment_package.zip
 mkdir package

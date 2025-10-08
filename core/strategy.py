@@ -49,7 +49,7 @@ class LowerThanStrategy(Strategy):
         groupby_df = self.group_backwardation(backwardation_df)
 
         if len(groupby_df) > self.check_days:
-            history_backwardation = self.get_specific_backwardation(backwardation_df["backwardation"])
+            history_backwardation = self.get_specific_backwardation(backwardation_df)
             current_backwardation = next_two_month_future_contract.reference - latest_future_contract.reference
             print("history backwardation: ", history_backwardation)
             print("current backwardation: ", current_backwardation)
@@ -64,10 +64,10 @@ class LowerThanStrategy(Strategy):
 
 
 class LowerThanMinOfXDaysStrategy(LowerThanStrategy):
-    def get_specific_backwardation(self, backwardation_series) -> int:
-        return backwardation_series.min()
+    def get_specific_backwardation(self, backwardation_df) -> int:
+        return backwardation_df["backwardation"].min()
 
 
 class LowerThanMedianOfXDaysStrategy(LowerThanStrategy):
-    def get_specific_backwardation(self, backwardation_series) -> int:
-        return backwardation_series.median()
+    def get_specific_backwardation(self, backwardation_df) -> int:
+        return self.group_backwardation(backwardation_df)["min_backwardation"].median()

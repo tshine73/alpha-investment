@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from shioaji.constant import Action
 from shioaji.contracts import Future
 
-from core.strategy import LowerThanMinOfXDaysStrategy
+from core.strategy import LowerThanMedianOfXDaysStrategy
 from future.core import login, find_target_future_contract, get_future_contracts, is_hold_future, get_latest_tick
 from future.future_dao import FutureDao
 from future.trading import trade
@@ -91,7 +91,7 @@ def handler(event, context=None):
         return
 
     check_days = os.getenv("check_days", 10)
-    strategy = LowerThanMinOfXDaysStrategy(dynamodb_client, check_days)
+    strategy = LowerThanMedianOfXDaysStrategy(dynamodb_client, check_days)
     is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
     print(f"do i rollover future? -> {is_buy}")
 
