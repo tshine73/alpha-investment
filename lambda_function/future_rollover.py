@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from shioaji.constant import Action
 from shioaji.contracts import Future
 
-from core.strategy import LowerThanMedianOfXDaysStrategy
+from core.strategy import LowerThanMedianOfXDaysStrategy, MustBuyIfSettlementThisWeekStrategy
 from future.core import login, find_target_future_contract, get_future_contracts, is_hold_future, get_latest_tick
 from future.future_dao import FutureDao
 from future.trading import trade
@@ -58,6 +58,17 @@ def quote(api, future_contract: Future):
     )
 
 
+def is_buy_by_strategies(strategies, recently_future_contract, next_two_month_future_contract):
+    for strategy in strategies:
+        is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
+        print(f"is the strategy [{strategy.strategy_name}] calling for a buy?: [{is_buy}]")
+
+        if is_buy:
+            return True
+
+    return False
+
+
 def handler(event, context=None):
     simulation = event.get("simulation", "True") == "True"
     print(f"simulation is {simulation}")
@@ -74,8 +85,11 @@ def handler(event, context=None):
     recently_future_tick = get_latest_tick(api, recently_future_contract)
     next_two_month_future_tick = get_latest_tick(api, next_two_month_future_contract)
 
-    recently_future_contract.reference = recently_future_tick.close[0]
-    next_two_month_future_contract.reference = next_two_month_future_tick.close[0]
+    if recently_future_tick.close:
+        recently_future_contract.reference = recently_future_tick.close[0]
+
+    if next_two_month_future_tick.close:
+        next_two_month_future_contract.reference = next_two_month_future_tick.close[0]
 
     print(f"the latest future contract:")
     print(recently_future_contract)
@@ -91,8 +105,8 @@ def handler(event, context=None):
         return
 
     check_days = os.getenv("check_days", 10)
-    strategy = LowerThanMedianOfXDaysStrategy(dynamodb_client, check_days)
-    is_buy = strategy.is_buy(recently_future_contract, next_two_month_future_contract)
+    strategies = [MustBuyIfSettlementThisWeekStrategy(), LowerThanMedianOfXDaysStrategy(dynamodb_client, check_days)]
+    is_buy = is_buy_by_strategies(strategies, recently_future_contract, next_two_month_future_contract)
     print(f"do i rollover future? -> {is_buy}")
 
     if is_buy:
