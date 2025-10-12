@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from future.future_dao import FutureDao
-from utils.date_utils import get_weekday_name
+from future_utils.date_utils import get_weekday_name
 
 
 class Strategy:
