@@ -1,5 +1,6 @@
 import logging
 
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,21 @@ class FutureDao:
         except ClientError as err:
             logger.error(
                 "Couldn't load data into table %s. Here's why: %s: %s",
+                self.table.name,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+
+    def query_by_code(self, code: str):
+        try:
+            response = self.table.query(
+                KeyConditionExpression=Key('code').eq(code),
+            )
+            return response['Items']
+        except ClientError as err:
+            logger.error(
+                "Couldn't query table %s. Here's why: %s: %s",
                 self.table.name,
                 err.response["Error"]["Code"],
                 err.response["Error"]["Message"],
