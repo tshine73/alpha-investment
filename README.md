@@ -58,8 +58,8 @@ mkdir package
 pip install shioaji==1.2.7 python-dotenv==1.0.1 pydantic==2.11.5 --target ./package
 cp -r ../lambda_function ./package/
 rm -rf ./package/lambda_function/__pycache__
-cp -r ../utils ./package/
-rm -rf ./package/utils/__pycache__  
+cp -r ../future_utils ./package/
+rm -rf ./package/future_utils/__pycache__  
 cp -r ../model ./package/
 rm -rf ./package/model/__pycache__
 cp -r ../future ./package/
