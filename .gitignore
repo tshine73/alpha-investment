@@ -174,3 +174,7 @@ cython_debug/
 
 # Project use
 resources/Sinopac.pfx
+
+deployment
+
+deployment_env
