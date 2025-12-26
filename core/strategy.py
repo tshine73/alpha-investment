@@ -55,7 +55,7 @@ class LowerThanStrategy(Strategy):
         groupby_df = self.group_backwardation(backwardation_df)
 
         if len(groupby_df) > self.check_days:
-            history_backwardation = self.get_specific_backwardation(backwardation_df)
+            history_backwardation = self.get_specific_backwardation(groupby_df)
             current_backwardation = next_two_month_future_contract.reference - latest_future_contract.reference
             self.log(f"history backwardation: {history_backwardation}")
             self.log(f"current backwardation: {current_backwardation}")
@@ -65,18 +65,18 @@ class LowerThanStrategy(Strategy):
             self.log(f"not enough quote data dates: {len(groupby_df) - 1}, need {self.check_days}")
             return False
 
-    def get_specific_backwardation(self, backwardation_series) -> int:
+    def get_specific_backwardation(self, df) -> int:
         pass
 
 
 class LowerThanMinOfXDaysStrategy(LowerThanStrategy):
-    def get_specific_backwardation(self, backwardation_df) -> int:
-        return backwardation_df["backwardation"].min()
+    def get_specific_backwardation(self, df) -> int:
+        return df["min_backwardation"].min()
 
 
 class LowerThanMedianOfXDaysStrategy(LowerThanStrategy):
-    def get_specific_backwardation(self, backwardation_df) -> int:
-        return self.group_backwardation(backwardation_df)["min_backwardation"].median()
+    def get_specific_backwardation(self, df) -> int:
+        return df["min_backwardation"].median()
 
 
 class MustBuyIfSettlementThisWeekStrategy(Strategy):

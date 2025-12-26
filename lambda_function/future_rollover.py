@@ -104,7 +104,7 @@ def handler(event, context=None):
         print("holding the next two month future contract, end the lambda")
         return
 
-    check_days = os.getenv("check_days", 10)
+    check_days = int(os.getenv("CHECK_DAYS", 10))
     strategies = [MustBuyIfSettlementThisWeekStrategy(), LowerThanMedianOfXDaysStrategy(dynamodb_client, check_days)]
     is_buy = is_buy_by_strategies(strategies, recently_future_contract, next_two_month_future_contract)
     print(f"do i rollover future? -> {is_buy}")
