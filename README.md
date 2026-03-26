@@ -2,24 +2,23 @@
 
 ## Prepare
 
-### install library
+### install libraries
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### follow the blog post to setup API key and certification
+### follow the blog post to set up API key and certification
 
 https://tshine73.blog/category/system/%e9%9b%a3%e9%81%93%e5%8f%b0%e6%8c%87%e6%9c%9f%e9%83%bd%e4%b8%8d%e6%9c%83%e6%9c%89%e9%80%86%e5%83%b9%e5%b7%ae%e4%ba%86%e5%97%8e/
 
-### add `.env` file
-
-please setup `.env` file in project root
-
-```editorconfig
-API_KEY = SECRET_KEY=
-
-CA_CERT_PATH = CA_PASSWORD=
+### add `.env` file in project root
+with the following content
+```
+API_KEY= 
+SECRET_KEY=
+CA_CERT_PATH= 
+CA_PASSWORD=
 ```
 
 ### run
@@ -36,13 +35,19 @@ sudo yum install -y python3.12
 sudo yum install git -y
 sudo yum install -y python3-pip
 sudo yum install -y zip
-python3.12 -m venv deployment_env
-source deployment_env/bin/activate
-cd ~
-git clone https://github.com/tshine73/alpha-investment.git 
 ```
 
-### open new terminal, copy .env and Sinopac.pfx to ec2 
+### pull code and create virtual environment
+```bash
+cd ~
+git clone https://github.com/tshine73/alpha-investment.git
+cd alpha-investment
+python3.12 -m venv .venv
+mkdir deployment
+mkdir resources
+```
+
+### open a new terminal, copy .env and Sinopac.pfx to ec2 
 ```bash
 scp -i ~/.ssh/tshine73.pem .env ec2-user@35.92.138.15:~/alpha-investment/deployment/
 scp -i ~/.ssh/tshine73.pem ./alpha-investment/resources/Sinopac.pfx ec2-user@52.32.87.1:~/alpha-investment/resources/
@@ -51,11 +56,12 @@ scp -i ~/.ssh/tshine73.pem ./alpha-investment/resources/Sinopac.pfx ec2-user@52.
 ### ssh to ec2 and package
 ```shell
 git pull
-source deployment_env/bin/activate
+source .venv/bin/activate
 cd deployment
 rm deployment_package.zip
 mkdir package
-pip install shioaji==1.2.7 python-dotenv==1.0.1 pydantic==2.11.5 --target ./package
+pip install shioaji==1.2.7 python-dotenv==1.0.1 pydantic==2.11.5 pandas==2.3.2 --target ./package
+rm -rf ./package/pandas/tests
 cp -r ../lambda_function ./package/
 rm -rf ./package/lambda_function/__pycache__
 cp -r ../future_utils ./package/
@@ -70,13 +76,13 @@ cp -r ../resources ./package/
 cp .env ./package
 cd package
 zip -r ../deployment_package.zip .
-cd ..
-rm -rf package
+cd ../../
+rm -rf deployment/package
 ```
 
-### download the zip and deploy to lambda
+### cp the zip to s3 and deploy to lambda
 ```bash
-scp -i ~/.ssh/tshine73.pem ec2-user@34.222.45.92:/home/ec2-user/alpha-investment/deployment/deployment_package.zip ./
+aws s3 cp ./deployment/deployment_package.zip s3://tshine73-meta/deployment/deployment_package.zip
 ```
 
 ## prepare pandas layer for lambda
